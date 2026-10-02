@@ -1,0 +1,56 @@
+services:
+
+  db:
+    image: postgres:18
+    container_name: securevault-db
+
+    environment:
+      POSTGRES_DB: securevault
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: securevault_db_password
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+    ports:
+      - "5432:5432"
+
+
+  backend:
+    build:
+      context: ./backend
+
+    container_name: securevault-backend
+
+    environment:
+      DATABASE_URL: postgresql://postgres:securevault_db_password@db:5432/securevault
+      JWT_SECRET_KEY: change_this_to_a_long_random_secret
+      JWT_ALGORITHM: HS256
+      FRONTEND_ORIGIN: http://localhost
+
+    volumes:
+      - securevault_storage:/app/storage
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      - db
+
+
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: securevault-frontend
+
+    ports:
+      - "80:80"
+
+    depends_on:
+      - backend
+
+
+volumes:
+  postgres_data:
+  securevault_storage:  
